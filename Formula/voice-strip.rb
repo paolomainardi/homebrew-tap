@@ -19,15 +19,6 @@ class VoiceStrip < Formula
     depends_on "pipewire"
   end
 
-  # Homebrew strips the driver's executable, which breaks the bundle's seal:
-  # the helper re-signs it on macOS and does nothing on Linux.
-  post_install_steps do
-    run "{{libexec}}/post-install",
-        args:           ["{{libexec}}"],
-        writable_paths: ["libexec"],
-        writable_base:  :prefix
-  end
-
   def install
     (libexec/"post-install").write <<~SH
       #!/bin/sh
@@ -38,7 +29,7 @@ class VoiceStrip < Formula
     chmod 0755, libexec/"post-install"
 
     if OS.linux?
-      ENV["LIBCLANG_PATH"] = Formula["llvm"].opt_lib
+      ENV["LIBCLANG_PATH"] = formula_opt_lib("llvm")
       system "cargo", "install", *std_cargo_args(path: "crates/app")
       return
     end
@@ -57,6 +48,15 @@ class VoiceStrip < Formula
       fi
       exec "#{libexec}/macos-driver-install.sh" "#{libexec}/VoiceStrip.driver"
     SH
+  end
+
+  # Homebrew strips the driver's executable, which breaks the bundle's seal:
+  # the helper re-signs it on macOS and does nothing on Linux.
+  post_install_steps do
+    run "{{libexec}}/post-install",
+        args:           ["{{libexec}}"],
+        writable_paths: ["libexec"],
+        writable_base:  :prefix
   end
 
   def caveats
