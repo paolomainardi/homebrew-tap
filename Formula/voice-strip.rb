@@ -10,14 +10,6 @@ class VoiceStrip < Formula
   on_macos do
     depends_on arch: :arm64
     depends_on macos: :ventura
-
-    # Homebrew strips the driver's executable, which breaks the bundle's seal.
-    post_install_steps do
-      run "/usr/bin/codesign",
-          args:           ["--force", "--sign", "-", "{{libexec}}/VoiceStrip.driver"],
-          writable_paths: ["libexec/VoiceStrip.driver"],
-          writable_base:  :prefix
-    end
   end
 
   on_linux do
@@ -27,7 +19,24 @@ class VoiceStrip < Formula
     depends_on "pipewire"
   end
 
+  # Homebrew strips the driver's executable, which breaks the bundle's seal:
+  # the helper re-signs it on macOS and does nothing on Linux.
+  post_install_steps do
+    run "{{libexec}}/post-install",
+        args:           ["{{libexec}}"],
+        writable_paths: ["libexec"],
+        writable_base:  :prefix
+  end
+
   def install
+    (libexec/"post-install").write <<~SH
+      #!/bin/sh
+      # Re-signs the Voice Strip driver after Homebrew stripped it (macOS).
+      [ "$(uname -s)" = Darwin ] || exit 0
+      exec /usr/bin/codesign --force --sign - "$1/VoiceStrip.driver"
+    SH
+    chmod 0755, libexec/"post-install"
+
     if OS.linux?
       ENV["LIBCLANG_PATH"] = Formula["llvm"].opt_lib
       system "cargo", "install", *std_cargo_args(path: "crates/app")
