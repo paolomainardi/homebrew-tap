@@ -5,6 +5,12 @@ class VoiceStrip < Formula
   sha256 "01f101eed376fa66a98112165185b76e66544f93a4c8bb3bced15bd66b220339"
   license any_of: ["MIT", "Apache-2.0"]
 
+  bottle do
+    root_url "https://github.com/paolomainardi/homebrew-tap/releases/download/voice-strip-0.4.0"
+    sha256 cellar: :any, arm64_tahoe:  "992d06e5a2c83904fd2e7ca0592220320f7a8ea871de9cdfecea16b4a6b84148"
+    sha256 cellar: :any, x86_64_linux: "8700a1f3b9e704be5bab2af91300c0aef9acc32694f54d96730249c1ed1a7c63"
+  end
+
   depends_on "rust" => :build
 
   on_macos do
