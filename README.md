@@ -5,7 +5,7 @@ Homebrew tap for Voice Strip and other tools by Paolo Mainardi
 
 ### voice-strip
 
-[Voice Strip](https://github.com/paolomainardi/voice-strip) makes a live microphone sound like a broadcast voice chain and publishes it as a virtual microphone. Apple Silicon Macs only, macOS 13 or later.
+[Voice Strip](https://github.com/paolomainardi/voice-strip) makes a live microphone sound like a broadcast voice chain and publishes it as a virtual microphone. Apple Silicon Macs on macOS 13 or later, and Linux (x86_64 and arm64) with PipeWire.
 
 ```bash
 brew install paolomainardi/tap/voice-strip

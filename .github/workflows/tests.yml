@@ -17,8 +17,10 @@ jobs:
   test-bot:
     strategy:
       matrix:
-        os: [ macos-26 ]
+        os: [ macos-26, ubuntu-24.04 ]
     runs-on: ${{ matrix.os }}
+    # Linux bottles build in Homebrew's own image, pinned by digest.
+    container: ${{ matrix.os == 'ubuntu-24.04' && 'ghcr.io/homebrew/ubuntu24.04@sha256:46dd6ced1f11325afc36a7fc2c749ff5b22414486f9966b99a284525f32b5d5e' || '' }}
     permissions:
       actions: read
       checks: read

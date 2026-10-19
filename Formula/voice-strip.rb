@@ -1,15 +1,31 @@
 class VoiceStrip < Formula
   desc "Live microphone through a broadcast voice chain, as a virtual microphone"
   homepage "https://github.com/paolomainardi/voice-strip"
-  url "https://github.com/paolomainardi/voice-strip/archive/refs/tags/v0.3.1.tar.gz"
-  sha256 "fc2639fea719665157d934e21773a0bffce1942201942cbfc2b3a6c1d011e6e7"
+  url "https://github.com/paolomainardi/voice-strip/archive/refs/tags/v0.4.0.tar.gz"
+  sha256 "01f101eed376fa66a98112165185b76e66544f93a4c8bb3bced15bd66b220339"
   license any_of: ["MIT", "Apache-2.0"]
 
   depends_on "rust" => :build
-  depends_on arch: :arm64
-  depends_on macos: :ventura
+
+  on_macos do
+    depends_on arch: :arm64
+    depends_on macos: :ventura
+  end
+
+  on_linux do
+    # libclang generates the PipeWire bindings.
+    depends_on "llvm" => :build
+    depends_on "pkgconf" => :build
+    depends_on "pipewire"
+  end
 
   def install
+    if OS.linux?
+      ENV["LIBCLANG_PATH"] = Formula["llvm"].opt_lib
+      system "cargo", "install", *std_cargo_args(path: "crates/app")
+      return
+    end
+
     system "cargo", "install", *std_cargo_args(path: "crates/app")
     system "scripts/macos-driver.sh"
 
@@ -26,15 +42,28 @@ class VoiceStrip < Formula
     SH
   end
 
-  # Homebrew strips the driver's executable, which breaks the bundle's seal.
-  post_install_steps do
-    run "/usr/bin/codesign",
-        args:           ["--force", "--sign", "-", "{{libexec}}/VoiceStrip.driver"],
-        writable_paths: ["libexec/VoiceStrip.driver"],
-        writable_base:  :prefix
+  on_macos do
+    # Homebrew strips the driver's executable, which breaks the bundle's seal.
+    post_install_steps do
+      run "/usr/bin/codesign",
+          args:           ["--force", "--sign", "-", "{{libexec}}/VoiceStrip.driver"],
+          writable_paths: ["libexec/VoiceStrip.driver"],
+          writable_base:  :prefix
+    end
   end
 
   def caveats
+    if OS.linux?
+      return <<~EOS
+        Start Voice Strip, then select "Voice Strip Microphone" as the
+        microphone in your call or recording app:
+
+          voice-strip
+
+        It needs a running PipeWire session and a Vulkan driver.
+      EOS
+    end
+
     <<~EOS
       Install the virtual microphone once (asks for your password and
       restarts Core Audio, so audio stops for a moment):
@@ -54,6 +83,7 @@ class VoiceStrip < Formula
 
   test do
     assert_predicate bin/"voice-strip", :executable?
-    system "codesign", "--verify", "--strict", libexec/"VoiceStrip.driver"
+    assert_match "voice-strip", shell_output("#{bin}/voice-strip --fonts-dir")
+    system "codesign", "--verify", "--strict", libexec/"VoiceStrip.driver" if OS.mac?
   end
 end
