@@ -1,59 +1,38 @@
 class VoiceStrip < Formula
   desc "Live microphone through a broadcast voice chain, as a virtual microphone"
   homepage "https://github.com/paolomainardi/voice-strip"
-  url "https://github.com/paolomainardi/voice-strip/archive/refs/tags/v0.4.0.tar.gz"
-  sha256 "01f101eed376fa66a98112165185b76e66544f93a4c8bb3bced15bd66b220339"
+  version "0.5.0"
   license any_of: ["MIT", "Apache-2.0"]
 
-  bottle do
-    root_url "https://github.com/paolomainardi/homebrew-tap/releases/download/voice-strip-0.4.0"
-    sha256 cellar: :any, arm64_tahoe:  "992d06e5a2c83904fd2e7ca0592220320f7a8ea871de9cdfecea16b4a6b84148"
-    sha256 cellar: :any, x86_64_linux: "8700a1f3b9e704be5bab2af91300c0aef9acc32694f54d96730249c1ed1a7c63"
-  end
-
-  depends_on "rust" => :build
-
+  # Release builds from the voice-strip repository: nothing is compiled here.
   on_macos do
     depends_on arch: :arm64
     depends_on macos: :ventura
+
+    url "https://github.com/paolomainardi/voice-strip/releases/download/v0.5.0/voice-strip-v0.5.0-macos-arm64.tar.gz"
+    sha256 "794c6bbc0b672dd6b813114132ca487a5e35972aaaf2441a07e774344e0ca23a"
   end
 
   on_linux do
-    # libclang generates the PipeWire bindings.
-    depends_on "llvm" => :build
-    depends_on "pkgconf" => :build
-    depends_on "pipewire"
+    # The binary links the system PipeWire library and needs glibc 2.39 or later.
+    depends_on arch: :x86_64
+
+    url "https://github.com/paolomainardi/voice-strip/releases/download/v0.5.0/voice-strip-v0.5.0-linux-x86_64.tar.gz"
+    sha256 "ad4c1223094e3b251a20a18e13ef9146f6d1642e490982cf153db461537cf01e"
   end
 
   def install
+    bin.install "voice-strip"
+    # `voice-strip driver install` finds the driver in libexec.
+    libexec.install "VoiceStrip.driver" if OS.mac?
+
     (libexec/"post-install").write <<~SH
       #!/bin/sh
-      # Re-signs the Voice Strip driver after Homebrew stripped it (macOS).
+      # Re-signs the Voice Strip driver ad-hoc after Homebrew stripped it (macOS).
       [ "$(uname -s)" = Darwin ] || exit 0
       exec /usr/bin/codesign --force --sign - "$1/VoiceStrip.driver"
     SH
     chmod 0755, libexec/"post-install"
-
-    if OS.linux?
-      ENV["LIBCLANG_PATH"] = formula_opt_lib("llvm")
-      system "cargo", "install", *std_cargo_args(path: "crates/app")
-      return
-    end
-
-    system "cargo", "install", *std_cargo_args(path: "crates/app")
-    system "scripts/macos-driver.sh"
-
-    libexec.install "target/VoiceStrip.driver"
-    libexec.install "scripts/macos-driver-install.sh"
-
-    (bin/"voice-strip-install-driver").write <<~SH
-      #!/bin/bash
-      # Installs (or with --uninstall removes) the Voice Strip virtual microphone.
-      if [[ "${1:-}" == "--uninstall" ]]; then
-        exec "#{libexec}/macos-driver-install.sh" --uninstall
-      fi
-      exec "#{libexec}/macos-driver-install.sh" "#{libexec}/VoiceStrip.driver"
-    SH
   end
 
   # Homebrew strips the driver's executable, which breaks the bundle's seal:
@@ -81,22 +60,25 @@ class VoiceStrip < Formula
       Install the virtual microphone once (asks for your password and
       restarts Core Audio, so audio stops for a moment):
 
-        voice-strip-install-driver
+        voice-strip driver install
 
-      Run it again after an upgrade that changes the driver. Start Voice Strip
-      from Terminal the first time, so macOS asks for the microphone permission:
+      After an upgrade, the app says when a release ships a new driver: run
+      the same command again. Start Voice Strip from Terminal the first time,
+      so macOS asks for the microphone permission:
 
         voice-strip
 
       Remove the driver before uninstalling the formula:
 
-        voice-strip-install-driver --uninstall
+        voice-strip driver uninstall
     EOS
   end
 
   test do
-    assert_predicate bin/"voice-strip", :executable?
     assert_match "voice-strip", shell_output("#{bin}/voice-strip --fonts-dir")
-    system "codesign", "--verify", "--strict", libexec/"VoiceStrip.driver" if OS.mac?
+    if OS.mac?
+      system "codesign", "--verify", "--strict", libexec/"VoiceStrip.driver"
+      assert_match "(revision ", shell_output("#{bin}/voice-strip driver status || true")
+    end
   end
 end
