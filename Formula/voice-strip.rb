@@ -10,6 +10,14 @@ class VoiceStrip < Formula
   on_macos do
     depends_on arch: :arm64
     depends_on macos: :ventura
+
+    # Homebrew strips the driver's executable, which breaks the bundle's seal.
+    post_install_steps do
+      run "/usr/bin/codesign",
+          args:           ["--force", "--sign", "-", "{{libexec}}/VoiceStrip.driver"],
+          writable_paths: ["libexec/VoiceStrip.driver"],
+          writable_base:  :prefix
+    end
   end
 
   on_linux do
@@ -40,16 +48,6 @@ class VoiceStrip < Formula
       fi
       exec "#{libexec}/macos-driver-install.sh" "#{libexec}/VoiceStrip.driver"
     SH
-  end
-
-  on_macos do
-    # Homebrew strips the driver's executable, which breaks the bundle's seal.
-    post_install_steps do
-      run "/usr/bin/codesign",
-          args:           ["--force", "--sign", "-", "{{libexec}}/VoiceStrip.driver"],
-          writable_paths: ["libexec/VoiceStrip.driver"],
-          writable_base:  :prefix
-    end
   end
 
   def caveats
