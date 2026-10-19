@@ -1,24 +1,24 @@
 class VoiceStrip < Formula
   desc "Live microphone through a broadcast voice chain, as a virtual microphone"
   homepage "https://github.com/paolomainardi/voice-strip"
-  version "0.5.0"
+  # Release builds from the voice-strip repository: nothing is compiled here.
+  if OS.mac?
+    url "https://github.com/paolomainardi/voice-strip/releases/download/v0.5.0/voice-strip-v0.5.0-macos-arm64.tar.gz"
+    sha256 "794c6bbc0b672dd6b813114132ca487a5e35972aaaf2441a07e774344e0ca23a"
+  else
+    url "https://github.com/paolomainardi/voice-strip/releases/download/v0.5.0/voice-strip-v0.5.0-linux-x86_64.tar.gz"
+    sha256 "ad4c1223094e3b251a20a18e13ef9146f6d1642e490982cf153db461537cf01e"
+  end
   license any_of: ["MIT", "Apache-2.0"]
 
-  # Release builds from the voice-strip repository: nothing is compiled here.
   on_macos do
     depends_on arch: :arm64
     depends_on macos: :ventura
-
-    url "https://github.com/paolomainardi/voice-strip/releases/download/v0.5.0/voice-strip-v0.5.0-macos-arm64.tar.gz"
-    sha256 "794c6bbc0b672dd6b813114132ca487a5e35972aaaf2441a07e774344e0ca23a"
   end
 
   on_linux do
     # The binary links the system PipeWire library and needs glibc 2.39 or later.
     depends_on arch: :x86_64
-
-    url "https://github.com/paolomainardi/voice-strip/releases/download/v0.5.0/voice-strip-v0.5.0-linux-x86_64.tar.gz"
-    sha256 "ad4c1223094e3b251a20a18e13ef9146f6d1642e490982cf153db461537cf01e"
   end
 
   def install
