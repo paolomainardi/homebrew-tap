@@ -3,11 +3,11 @@ class VoiceStrip < Formula
   homepage "https://github.com/paolomainardi/voice-strip"
   # Release builds from the voice-strip repository: nothing is compiled here.
   if OS.mac?
-    url "https://github.com/paolomainardi/voice-strip/releases/download/v0.5.0/voice-strip-v0.5.0-macos-arm64.tar.gz"
-    sha256 "794c6bbc0b672dd6b813114132ca487a5e35972aaaf2441a07e774344e0ca23a"
+    url "https://github.com/paolomainardi/voice-strip/releases/download/v0.5.1/voice-strip-v0.5.1-macos-arm64.tar.gz"
+    sha256 "ed73897326c54f8344a0d9f9a2e59e0e7447f725dabcead6d299fa3e1d7ad7b4"
   else
-    url "https://github.com/paolomainardi/voice-strip/releases/download/v0.5.0/voice-strip-v0.5.0-linux-x86_64.tar.gz"
-    sha256 "ad4c1223094e3b251a20a18e13ef9146f6d1642e490982cf153db461537cf01e"
+    url "https://github.com/paolomainardi/voice-strip/releases/download/v0.5.1/voice-strip-v0.5.1-linux-x86_64.tar.gz"
+    sha256 "e8edb461268997d47544629988f98174cf73fc020ce96730358f0ce8e3a81b4f"
   end
   license any_of: ["MIT", "Apache-2.0"]
 
