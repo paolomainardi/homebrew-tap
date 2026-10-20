@@ -3,11 +3,11 @@ class VoiceStrip < Formula
   homepage "https://github.com/paolomainardi/voice-strip"
   # Release builds from the voice-strip repository: nothing is compiled here.
   if OS.mac?
-    url "https://github.com/paolomainardi/voice-strip/releases/download/v0.7.0/voice-strip-v0.7.0-macos-arm64.tar.gz"
-    sha256 "ce4df8becb3b6e213c798c82e269cc27f8607fe3c93a07fa99c2ced5038a3d2a"
+    url "https://github.com/paolomainardi/voice-strip/releases/download/v0.7.1/voice-strip-v0.7.1-macos-arm64.tar.gz"
+    sha256 "827003b615e67de7568692382e76b5248dae2d9546bb4d4b3d3d31a0936418a8"
   else
-    url "https://github.com/paolomainardi/voice-strip/releases/download/v0.7.0/voice-strip-v0.7.0-linux-x86_64.tar.gz"
-    sha256 "7bfb74f8f89a5d0beb23096083465b9222189ddf15f5934f97e5f9e53359a585"
+    url "https://github.com/paolomainardi/voice-strip/releases/download/v0.7.1/voice-strip-v0.7.1-linux-x86_64.tar.gz"
+    sha256 "d59071bbd23f869503b7ffbceb3b80c2281d92c4ea6eb7a0f706026427bc6101"
   end
   license any_of: ["MIT", "Apache-2.0"]
 
@@ -55,12 +55,16 @@ class VoiceStrip < Formula
   def caveats
     if OS.linux?
       return <<~EOS
+        Add Voice Strip to your app launcher, with its icon:
+
+          voice-strip app install
+
         Start Voice Strip, then select "Voice Strip Microphone" as the
-        microphone in your call or recording app:
+        microphone in your call or recording app. It needs a running
+        PipeWire session and a Vulkan driver. Remove the launcher before
+        uninstalling the formula:
 
-          voice-strip
-
-        It needs a running PipeWire session and a Vulkan driver.
+          voice-strip app uninstall
       EOS
     end
 
